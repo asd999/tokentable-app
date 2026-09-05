@@ -7,13 +7,14 @@
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; text-align: center; background: #f9f9f9; }
     .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    textarea { width: 100%; height: 90px; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; }
+    textarea { width: 100%; height: 90px; margin-bottom: 15px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box; }
     input[type="file"] { margin-bottom: 15px; }
     #preview { max-width: 150px; display: block; margin: 10px auto; border-radius: 6px; }
     button { background: #6366f1; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; }
     button:hover { background: #4f46e5; }
     #status { margin-top: 15px; color: #555; font-weight: bold; }
-    .result-box { margin-top: 20px; white-space: pre-wrap; text-align: left; background: #eee; padding: 10px; border-radius: 6px; }
+    .result-box { margin-top: 20px; display: none; text-align: center; }
+    video { width: 100%; border-radius: 8px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -29,7 +30,12 @@
     <button onclick="submitTask()">開始生成</button>
     
     <div id="status"></div>
-    <div id="resultBox" class="result-box" style="display:none;"></div>
+    <div id="resultBox" class="result-box">
+      <h3>生成結果：</h3>
+      <video id="videoResult" controls></video>
+      <br><br>
+      <a id="downloadLink" href="" target="_blank" style="color: #6366f1; text-decoration: none; font-weight: bold;">🔗 另存影片檔案</a>
+    </div>
   </div>
 
   <script>
@@ -54,7 +60,7 @@
 
       if (!prompt) return alert("請輸入提示詞！");
 
-      status.innerText = "正在透過 TokenTable 提交任務...";
+      status.innerText = "正在透過 TokenTable 提交並生成影片（可能需要 1~2 分鐘，請耐心等待）...";
       resultBox.style.display = "none";
 
       try {
@@ -67,9 +73,15 @@
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        status.innerText = "任務處理完成！";
-        resultBox.innerText = data.result;
+        status.innerText = "影片生成完成！";
+        
+        // 顯示影片與下載連結
+        const videoResult = document.getElementById("videoResult");
+        const downloadLink = document.getElementById("downloadLink");
+        videoResult.src = data.videoUrl;
+        downloadLink.href = data.videoUrl;
         resultBox.style.display = "block";
+
       } catch (err) {
         status.innerText = "發生錯誤：" + err.message;
       }
